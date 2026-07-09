@@ -15,7 +15,7 @@ This repository serves as:
 * A personal learning journal.
 * A collection of reusable scientific computing tools.
 * A portfolio demonstrating skills in applied mathematics and computational modeling.
-* A foundation for future projects in machine learning, biomechanics, optimization, and uncertainty quantification.
+* A foundation for future projects in machine learning, optimization, and uncertainty quantification.
 
 ---
 
@@ -140,7 +140,6 @@ This repository is the computational foundation for future work in:
 * Applied Mathematics
 * Statistical Learning
 * Scientific Machine Learning
-* Biomechanical Modeling
 * Bayesian Optimization
 * Digital Twins
 * Artificial Intelligence for Healthcare
