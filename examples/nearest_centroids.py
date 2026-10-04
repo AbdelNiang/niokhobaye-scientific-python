@@ -10,10 +10,15 @@ def assign_nearest_centroids(
         raise ValueError("samples and centroids must be two-dimensional")
     if samples.shape[1] != centroids.shape[1] or centroids.shape[0] == 0:
         raise ValueError("feature counts must match and centroids cannot be empty")
+    if not np.all(np.isfinite(samples)) or not np.all(np.isfinite(centroids)):
+        raise ValueError("samples and centroids must contain only finite values")
 
-    sample_norms = np.sum(samples**2, axis=1, keepdims=True)
-    centroid_norms = np.sum(centroids**2, axis=1)
-    squared_distances = sample_norms + centroid_norms - 2 * samples @ centroids.T
+    dtype = np.result_type(samples.dtype, centroids.dtype, np.longdouble)
+    samples = np.asarray(samples, dtype=dtype)
+    centroids = np.asarray(centroids, dtype=dtype)
+
+    deltas = samples[:, None, :] - centroids[None, :, :]
+    squared_distances = np.einsum("ijk,ijk->ij", deltas, deltas, optimize=True)
     return np.argmin(squared_distances, axis=1)
 
 
