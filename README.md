@@ -1,31 +1,42 @@
 # Scientific Python
 
-Short, reproducible examples in scientific computing, with an emphasis on
-clear NumPy code and vectorized calculations.
+A small portfolio of reproducible scientific Python examples. The goal here is
+clarity, numerical stability, and real validation rather than breadth without
+proof.
 
-## Example
+## Included methods
 
-`examples/nearest_centroids.py` assigns each observation to its nearest
-centroid using NumPy broadcasting.
+This repository currently contains a limited but verified set of methods:
 
-Run it with Python 3 and NumPy installed:
+- ridge regression by solving a linear system,
+- lasso regression by coordinate descent,
+- gradient descent with an Armijo backtracking line search.
+
+The nearest-centroid example remains available as a simple vectorized baseline.
+
+## Run the examples
 
 ```bash
 python examples/nearest_centroids.py
+python examples/optimization_methods_demo.py
 ```
 
-Expected output:
+## Validation
 
-```text
-Cluster assignments: [0 0 1 1]
+The implementation is checked by lightweight deterministic tests:
+
+```bash
+python -m pytest -q
 ```
 
-More topics will be added as working examples are ready; this repository does
-not claim unfinished topics as completed projects.
+## Scope
+
+This repository is intentionally narrow. It does not claim broader optimization
+frameworks or advanced algorithms before they are implemented and validated.
 
 ## Author
 
 **Niokhobaye Abdel**
 
-M.Sc. student in Mathematics, interested in scientific machine learning,
-optimization, and mathematical modeling.
+M.Sc. student in Mathematics, interested in optimization, scientific computing,
+and mathematical modeling.
