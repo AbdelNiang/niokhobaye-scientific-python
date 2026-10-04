@@ -16,17 +16,28 @@ The nearest-centroid example remains available as a simple vectorized baseline.
 
 ## Run the examples
 
+From the repository root, either install the local package or add the project root to `PYTHONPATH`.
+
 ```bash
-python examples/nearest_centroids.py
-python examples/optimization_methods_demo.py
+python3 -m pip install -e .
+python3 examples/nearest_centroids.py
+python3 examples/optimization_methods_demo.py
 ```
+
+The demo script also supports a direct path invocation from the repository root:
+
+```bash
+PYTHONPATH=. python3 examples/optimization_methods_demo.py
+```
+
+If the `python` alias is unavailable on your machine, use `python3` instead.
 
 ## Validation
 
 The implementation is checked by lightweight deterministic tests:
 
 ```bash
-python -m pytest -q
+python3 -m pytest -q
 ```
 
 ## Scope
