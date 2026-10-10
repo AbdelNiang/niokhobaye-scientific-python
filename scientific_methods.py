@@ -38,7 +38,7 @@ def _as_vector(y: np.ndarray, *, name: str = "y") -> np.ndarray:
 def ridge_regression(X: np.ndarray, y: np.ndarray, lam: float = 1e-2) -> np.ndarray:
     """Solve the ridge regression problem
 
-        minimize 0.5 * ||X beta - y||^2 + lam ||beta||^2.
+        minimize 0.5 * ||X beta - y||^2 + 0.5 * lam ||beta||^2.
 
     When lam = 0, the method falls back to a least-squares solve to keep the
     rank-deficient case numerically meaningful instead of invoking a singular
@@ -48,8 +48,10 @@ def ridge_regression(X: np.ndarray, y: np.ndarray, lam: float = 1e-2) -> np.ndar
     y = _as_vector(y, name="y")
     if X.shape[0] != y.shape[0]:
         raise ValueError("X and y have incompatible shapes")
-    if not np.isfinite(lam) or lam < 0:
+    if np.asarray(lam).ndim != 0 or not np.isfinite(lam) or lam < 0:
         raise ValueError("lambda must be a finite non-negative scalar")
+    if X.shape[1] == 0:
+        raise ValueError("X must have at least one feature")
 
     if lam == 0.0:
         beta, *_ = np.linalg.lstsq(X, y, rcond=None)
@@ -92,21 +94,24 @@ def lasso_coordinate_descent(
     y = _as_vector(y, name="y")
     if X.shape[0] != y.shape[0]:
         raise ValueError("X and y have incompatible shapes")
-    if not np.isfinite(lam) or lam < 0:
+    if np.asarray(lam).ndim != 0 or not np.isfinite(lam) or lam < 0:
         raise ValueError("lambda must be a finite non-negative scalar")
-    if not np.isfinite(tol) or tol < 0:
+    if np.asarray(tol).ndim != 0 or not np.isfinite(tol) or tol < 0:
         raise ValueError("tol must be a finite non-negative scalar")
     if not isinstance(max_iter, (int, np.integer)) or max_iter <= 0:
         raise ValueError("max_iter must be a positive integer")
     if X.shape[1] == 0:
         raise ValueError("X must have at least one feature")
 
-    n_samples, n_features = X.shape
+    _, n_features = X.shape
     beta = np.zeros(n_features, dtype=float)
     residual = y.copy()
-    column_norms = np.sum(X * X, axis=0)
+    with np.errstate(over="ignore", invalid="ignore"):
+        column_norms = np.sum(X * X, axis=0)
+    if not np.all(np.isfinite(column_norms)):
+        raise ValueError("X values are too large for finite coordinate norms")
 
-    for iteration in range(max_iter):
+    for _ in range(max_iter):
         previous = beta.copy()
         for j in range(n_features):
             if column_norms[j] <= 0.0:
@@ -151,18 +156,21 @@ def armijo_gradient_descent(
         x = x.reshape(1)
     if not np.all(np.isfinite(x)):
         raise ValueError("x0 must contain only finite values")
-    if not np.isfinite(initial_step) or initial_step <= 0.0:
+    if np.asarray(initial_step).ndim != 0 or not np.isfinite(initial_step) or initial_step <= 0.0:
         raise ValueError("initial_step must be a finite positive scalar")
-    if not np.isfinite(c1) or not (0.0 < c1 < 1.0):
+    if np.asarray(c1).ndim != 0 or not np.isfinite(c1) or not (0.0 < c1 < 1.0):
         raise ValueError("c1 must satisfy 0 < c1 < 1")
-    if not np.isfinite(rho) or not (0.0 < rho < 1.0):
+    if np.asarray(rho).ndim != 0 or not np.isfinite(rho) or not (0.0 < rho < 1.0):
         raise ValueError("rho must satisfy 0 < rho < 1")
-    if not np.isfinite(tol) or tol < 0.0:
+    if np.asarray(tol).ndim != 0 or not np.isfinite(tol) or tol < 0.0:
         raise ValueError("tol must be a finite non-negative scalar")
     if not isinstance(max_iter, (int, np.integer)) or max_iter <= 0:
         raise ValueError("max_iter must be a positive integer")
 
-    f0 = objective(x)
+    f0 = np.asarray(objective(x), dtype=float)
+    if f0.ndim != 0:
+        raise ValueError("objective must return a scalar value")
+    f0 = float(f0)
     if not np.isfinite(f0):
         raise ValueError("objective must evaluate to a finite value at x0")
 
@@ -187,7 +195,10 @@ def armijo_gradient_descent(
 
         for _ in range(max_backtracking_tries):
             candidate = x + local_step * direction
-            candidate_value = objective(candidate)
+            candidate_value = np.asarray(objective(candidate), dtype=float)
+            if candidate_value.ndim != 0:
+                raise ValueError("objective must return a scalar value")
+            candidate_value = float(candidate_value)
             if not np.isfinite(candidate_value):
                 raise ValueError("objective must evaluate to finite values along the line search")
             if candidate_value <= f0 + c1 * local_step * np.dot(grad_x, direction):
